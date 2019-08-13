@@ -1,35 +1,30 @@
-import os
-import re
+import datetime
 import time
 import traceback
-import datetime
 
 import meld3
+import os
+import re
 
+from supervisor.compat import PY2
+from supervisor.compat import as_string
+from supervisor.compat import unicode
 from supervisor.compat import urllib
 from supervisor.compat import urlparse
-from supervisor.compat import as_string
-from supervisor.compat import PY2
-from supervisor.compat import unicode
-
-from supervisor.medusa import producers
-from supervisor.medusa.http_server import http_date
-from supervisor.medusa.http_server import get_header
-from supervisor.medusa.xmlrpc_handler import collector
-
-from supervisor.process import ProcessStates
 from supervisor.http import NOT_DONE_YET
-
+from supervisor.medusa import producers
+from supervisor.medusa.http_server import get_header
+from supervisor.medusa.http_server import http_date
+from supervisor.medusa.xmlrpc_handler import collector
 from supervisor.options import VERSION
 from supervisor.options import make_namespec
 from supervisor.options import split_namespec
-
-from supervisor.xmlrpc import SystemNamespaceRPCInterface
-from supervisor.xmlrpc import RootRPCInterface
+from supervisor.process import ProcessStates
+from supervisor.rpcinterface import SupervisorNamespaceRPCInterface
 from supervisor.xmlrpc import Faults
 from supervisor.xmlrpc import RPCError
-
-from supervisor.rpcinterface import SupervisorNamespaceRPCInterface
+from supervisor.xmlrpc import RootRPCInterface
+from supervisor.xmlrpc import SystemNamespaceRPCInterface
 
 
 class DeferredWebProducer:

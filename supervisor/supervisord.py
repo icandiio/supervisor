@@ -215,7 +215,7 @@ class Supervisor:
                 if dispatcher.writable():
                     self.options.poller.register_writable(fd)
 
-            # 获取事件监听结果集
+            # 获取事件监听结果集 并 处理监听事件
             r, w = self.options.poller.poll(timeout)
 
             for fd in r:
@@ -248,12 +248,13 @@ class Supervisor:
                     except:
                         combined_map[fd].handle_error()
 
-            # 子进程状态切换
+            # 子进程状态检测（本身进程的当前状态和目标状态的匹配，状态转换）
             for group in pgroups:
                 # 判断配置子进程的状态，来决定该子进程是否运行(这其中是由于有些进程可以配置延迟执行)
                 # 通过调用子进程实例的spwn()方法来运行子进程
                 group.transition()
 
+            # 清理死进程以及相关维护信息
             self.reap()
             # 信号处理
             self.handle_signal()

@@ -422,7 +422,7 @@ class ServerOptions(Options):
         # 配置文件描述 程序属性映射 => 分章节，以段的方式描述配置文件
         self.configroot = Dummy()  # supervisord.conf
         self.configroot.supervisord = Dummy()  # supervisor.conf[supervisord]
-        # => 配置文件中的其他关键配置也会在后期关联到supervisord上,如下描述
+        # => 配置文件中的其他关键配置也会在后期关联到supervisord上【且会关联到顶层方便使用】,如下描述
         """
             Options.relize():
                 configroot.supervisord.server_configs = self.server_configs_from_parser => ['inet_http_server','unix_http_server']
@@ -528,12 +528,11 @@ class ServerOptions(Options):
 
         self.pidfile = normalize_path(pidfile)
 
+        # supervisord 配置信息 挂载到顶层 方便使用
         self.rpcinterface_factories = section.rpcinterface_factories
-
-        self.serverurl = None
-
         self.server_configs = sconfigs = section.server_configs
 
+        self.serverurl = None
         # we need to set a fallback serverurl that process.spawn can use
 
         # 1.prefer a unix domain socket
@@ -1534,7 +1533,7 @@ class ServerOptions(Options):
     def write(self, fd, data):
         return os.write(fd, as_bytes(data))
 
-    def execve(self, filename, argv, env):
+    def execve(self, filename, argv, env):  # @important 子进程命令执行
         return os.execve(filename, argv, env)
 
     def mktempfile(self, suffix, prefix, dir):
@@ -1601,12 +1600,13 @@ class ServerOptions(Options):
     def chdir(self, dir):
         os.chdir(dir)
 
-    def make_pipes(self, stderr=True):
+    def make_pipes(self, stderr=True):  # @important
         """ Create pipes for parent to child stdin/stdout/stderr
         communications.  Open fd in non-blocking mode so we can read them
         in the mainloop without blocking.  If stderr is False, don't
         create a pipe for stderr. """
 
+        # 管道映射
         pipes = {'child_stdin': None,
                  'stdin': None,
                  'stdout': None,
@@ -1614,16 +1614,15 @@ class ServerOptions(Options):
                  'stderr': None,
                  'child_stderr': None}
         try:
-            # 生成一个子进程标准输入管道的读和写句柄
+            # rfd, wfd = os.pipe()
             stdin, child_stdin = os.pipe()
-            pipes['child_stdin'], pipes['stdin'] = stdin, child_stdin
-            # 生成一个子进程标准输出管道的读和写句柄
+            pipes['child_stdin'], pipes['stdin'] = stdin, child_stdin  # 输入比较特殊
             stdout, child_stdout = os.pipe()
             pipes['stdout'], pipes['child_stdout'] = stdout, child_stdout
             if stderr:
-                # 生成一个子进程标准错误管道的读和写句柄
                 stderr, child_stderr = os.pipe()
                 pipes['stderr'], pipes['child_stderr'] = stderr, child_stderr
+
             # 将主进程中要读的管道设置成非阻塞，使之在异步io中不阻塞整个循环
             for fd in (pipes['stdout'], pipes['stderr'], pipes['stdin']):
                 if fd is not None:
@@ -1935,7 +1934,7 @@ class ProcessConfig(Config):  # 子进程单实例配置
         process.group = group
         return process
 
-    def make_dispatchers(self, proc):
+    def make_dispatchers(self, proc):  # @important 封装事件回调接口
         use_stderr = not self.redirect_stderr
         p = self.options.make_pipes(use_stderr)
         stdout_fd, stderr_fd, stdin_fd = p['stdout'], p['stderr'], p['stdin']
@@ -1943,6 +1942,8 @@ class ProcessConfig(Config):  # 子进程单实例配置
         from supervisor.dispatchers import POutputDispatcher
         from supervisor.dispatchers import PInputDispatcher
         from supervisor import events
+
+        # dispatcher 实例化
         if stdout_fd is not None:
             etype = events.ProcessCommunicationStdoutEvent
             dispatchers[stdout_fd] = POutputDispatcher(proc, etype, stdout_fd)

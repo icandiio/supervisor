@@ -10,18 +10,18 @@ from supervisor.compat import as_bytes
 # via tests_require so it is not available on all supervisor installs.  the
 # modules imported in supervisor.compat must always be available.
 
-try: # pragma: no cover
+try:  # pragma: no cover
     from unittest.mock import Mock, patch, sentinel
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     from mock import Mock, patch, sentinel
 
-try: # pragma: no cover
+try:  # pragma: no cover
     import unittest.mock as mock
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     import mock
 
-class DummyOptions:
 
+class DummyOptions:
     make_pipes_error = None
     fork_error = None
     execv_error = None
@@ -262,6 +262,7 @@ class DummyOptions:
     def setumask(self, mask):
         self.umaskset = mask
 
+
 class DummyLogger:
     level = None
 
@@ -275,6 +276,7 @@ class DummyLogger:
         if kw:
             msg = msg % kw
         self.data.append(msg)
+
     warn = debug = critical = trace = error = blather = info
 
     def log(self, level, msg, **kw):
@@ -287,14 +289,19 @@ class DummyLogger:
 
     def reopen(self):
         self.reopened = True
+
     def close(self):
         self.closed = True
+
     def remove(self):
         self.removed = True
+
     def flush(self):
         self.flushed = True
+
     def getvalue(self):
         return ''.join(self.data)
+
 
 class DummySupervisor:
     def __init__(self, options=None, state=None, process_groups=None):
@@ -314,6 +321,7 @@ class DummySupervisor:
 
     def get_state(self):
         return self.options.mood
+
 
 class DummySocket:
     bind_called = False
@@ -342,6 +350,7 @@ class DummySocket:
     def __str__(self):
         return 'dummy socket'
 
+
 class DummySocketConfig:
     def __init__(self, fd):
         self.fd = fd
@@ -362,6 +371,7 @@ class DummySocketConfig:
     def create_and_bind(self):
         return DummySocket(self.fd)
 
+
 class DummySocketManager:
     def __init__(self, config, **kwargs):
         self._config = config
@@ -372,17 +382,18 @@ class DummySocketManager:
     def get_socket(self):
         return DummySocket(self._config.fd)
 
+
 @total_ordering
 class DummyProcess(object):
     # Initial state; overridden by instance variables
-    pid = 0 # Subprocess pid; 0 when not running
-    laststart = 0 # Last time the subprocess was started; 0 if never
+    pid = 0  # Subprocess pid; 0 when not running
+    laststart = 0  # Last time the subprocess was started; 0 if never
     laststop = 0  # Last time the subprocess was stopped; 0 if never
-    delay = 0 # If nonzero, delay starting or killing until this time
-    administrative_stop = False # true if the process stopped by an admin
-    system_stop = False # true if the process has been stopped by the system
-    killing = False # flag determining whether we are trying to kill this proc
-    backoff = 0 # backoff counter (to backofflimit)
+    delay = 0  # If nonzero, delay starting or killing until this time
+    administrative_stop = False  # true if the process stopped by an admin
+    system_stop = False  # true if the process has been stopped by the system
+    killing = False  # flag determining whether we are trying to kill this proc
+    backoff = 0  # backoff counter (to backofflimit)
     waitstatus = None
     exitstatus = None
     pipes = None
@@ -391,9 +402,9 @@ class DummyProcess(object):
     stdout_logged = ''
     stderr_logged = ''
     spawnerr = None
-    stdout_buffer = '' # buffer of characters from child stdout output to log
-    stderr_buffer = '' # buffer of characters from child stderr output to log
-    stdin_buffer = '' # buffer of characters to send to child process' stdin
+    stdout_buffer = ''  # buffer of characters from child stdout output to log
+    stderr_buffer = ''  # buffer of characters from child stderr output to log
+    stdin_buffer = ''  # buffer of characters to send to child process' stdin
     listener_state = None
     group = None
     sent_signal = None
@@ -454,7 +465,6 @@ class DummyProcess(object):
     def signal(self, signal):
         self.sent_signal = signal
 
-
     def spawn(self):
         self.spawned = True
         from supervisor.process import ProcessStates
@@ -507,6 +517,7 @@ class DummyProcess(object):
 
     def __lt__(self, other):
         return self.config.priority < other.config.priority
+
 
 class DummyPConfig:
     def __init__(self, options, name, command, directory=None, umask=None,
@@ -573,8 +584,8 @@ class DummyPConfig:
     def make_dispatchers(self, proc):
         use_stderr = not self.redirect_stderr
         pipes = self.options.make_pipes(use_stderr)
-        stdout_fd,stderr_fd,stdin_fd = (pipes['stdout'],pipes['stderr'],
-                                        pipes['stdin'])
+        stdout_fd, stderr_fd, stdin_fd = (pipes['stdout'], pipes['stderr'],
+                                          pipes['stdin'])
         dispatchers = {}
         if stdout_fd is not None:
             dispatchers[stdout_fd] = DummyDispatcher(readable=True)
@@ -583,6 +594,7 @@ class DummyPConfig:
         if stdin_fd is not None:
             dispatchers[stdin_fd] = DummyDispatcher(writable=True)
         return dispatchers, pipes
+
 
 def makeExecutable(file, substitutions=None):
     import os
@@ -604,6 +616,7 @@ def makeExecutable(file, substitutions=None):
     os.chmod(tmpnam, 0o755)
     return tmpnam
 
+
 def makeSpew(unkillable=False):
     import os
     here = os.path.dirname(__file__)
@@ -611,15 +624,19 @@ def makeSpew(unkillable=False):
         return makeExecutable(os.path.join(here, 'fixtures/spew.py'))
     return makeExecutable(os.path.join(here, 'fixtures/unkillable_spew.py'))
 
+
 class DummyMedusaServerLogger:
     def __init__(self):
         self.logged = []
+
     def log(self, category, msg):
         self.logged.append((category, msg))
+
 
 class DummyMedusaServer:
     def __init__(self):
         self.logger = DummyMedusaServerLogger()
+
 
 class DummyMedusaChannel:
     def __init__(self):
@@ -635,11 +652,13 @@ class DummyMedusaChannel:
     def set_terminator(self, terminator):
         pass
 
+
 class DummyRequest(object):
     command = 'GET'
     _error = None
     _done = False
     version = '1.0'
+
     def __init__(self, path, params, query, fragment, env=None):
         self.args = path, params, query, fragment
         self.producers = []
@@ -697,13 +716,16 @@ class DummyRPCInterfaceFactory:
         self.supervisord = supervisord
         self.config = config
 
+
 class DummyRPCServer:
     def __init__(self):
         self.supervisor = DummySupervisorRPCNamespace()
         self.system = DummySystemRPCNamespace()
 
+
 class DummySystemRPCNamespace:
     pass
+
 
 class DummySupervisorRPCNamespace:
     _restartable = True
@@ -711,51 +733,50 @@ class DummySupervisorRPCNamespace:
     _shutdown = False
     _readlog_error = False
 
-
     from supervisor.process import ProcessStates
     all_process_info = [
         {
-        'name':'foo',
-        'group':'foo',
-        'pid':11,
-        'state':ProcessStates.RUNNING,
-        'statename':'RUNNING',
-        'start':_NOW - 100,
-        'stop':0,
-        'spawnerr':'',
-        'now':_NOW,
-        'description':'foo description',
+            'name': 'foo',
+            'group': 'foo',
+            'pid': 11,
+            'state': ProcessStates.RUNNING,
+            'statename': 'RUNNING',
+            'start': _NOW - 100,
+            'stop': 0,
+            'spawnerr': '',
+            'now': _NOW,
+            'description': 'foo description',
         },
         {
-        'name':'bar',
-        'group':'bar',
-        'pid':12,
-        'state':ProcessStates.FATAL,
-        'statename':'FATAL',
-        'start':_NOW - 100,
-        'stop':_NOW - 50,
-        'spawnerr':'screwed',
-        'now':_NOW,
-        'description':'bar description',
+            'name': 'bar',
+            'group': 'bar',
+            'pid': 12,
+            'state': ProcessStates.FATAL,
+            'statename': 'FATAL',
+            'start': _NOW - 100,
+            'stop': _NOW - 50,
+            'spawnerr': 'screwed',
+            'now': _NOW,
+            'description': 'bar description',
         },
         {
-        'name':'baz_01',
-        'group':'baz',
-        'pid':13,
-        'state':ProcessStates.STOPPED,
-        'statename':'STOPPED',
-        'start':_NOW - 100,
-        'stop':_NOW - 25,
-        'spawnerr':'',
-        'now':_NOW,
-        'description':'baz description',
+            'name': 'baz_01',
+            'group': 'baz',
+            'pid': 13,
+            'state': ProcessStates.STOPPED,
+            'statename': 'STOPPED',
+            'start': _NOW - 100,
+            'stop': _NOW - 25,
+            'spawnerr': '',
+            'now': _NOW,
+            'description': 'baz description',
         },
-        ]
+    ]
 
     def getAPIVersion(self):
         return '3.0'
 
-    getVersion = getAPIVersion # deprecated
+    getVersion = getAPIVersion  # deprecated
 
     def getPID(self):
         return 42
@@ -773,6 +794,7 @@ class DummySupervisorRPCNamespace:
 
     def readProcessStdoutLog(self, name, offset, length):
         return self._read_log('stdout', name, offset, length)
+
     readProcessLog = readProcessStdoutLog
 
     def readProcessStderrLog(self, name, offset, length):
@@ -784,8 +806,8 @@ class DummySupervisorRPCNamespace:
     def getProcessInfo(self, name):
         from supervisor import xmlrpc
         for i in self.all_process_info:
-            if i['name']==name:
-                info=i
+            if i['name'] == name:
+                info = i
                 return info
         if name == 'BAD_NAME':
             raise Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME')
@@ -819,27 +841,27 @@ class DummySupervisorRPCNamespace:
         if name == 'BAD_NAME':
             raise Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME')
         return [
-            {'name':'foo_00', 'group':'foo',
+            {'name': 'foo_00', 'group': 'foo',
              'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo_01', 'group':'foo',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo_01', 'group': 'foo',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            ]
+        ]
 
     def startAllProcesses(self):
         from supervisor import xmlrpc
         return [
-            {'name':'foo', 'group':'foo',
+            {'name': 'foo', 'group': 'foo',
              'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo2', 'group':'foo2',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo2', 'group': 'foo2',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'failed', 'group':'failed_group',
-             'status':xmlrpc.Faults.SPAWN_ERROR,
-             'description':'SPAWN_ERROR'}
-            ]
+            {'name': 'failed', 'group': 'failed_group',
+             'status': xmlrpc.Faults.SPAWN_ERROR,
+             'description': 'SPAWN_ERROR'}
+        ]
 
     def stopProcessGroup(self, name):
         from supervisor import xmlrpc
@@ -847,13 +869,13 @@ class DummySupervisorRPCNamespace:
         if name == 'BAD_NAME':
             raise Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME')
         return [
-            {'name':'foo_00', 'group':'foo',
+            {'name': 'foo_00', 'group': 'foo',
              'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo_01', 'group':'foo',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo_01', 'group': 'foo',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            ]
+        ]
 
     def stopProcess(self, name):
         from supervisor import xmlrpc
@@ -871,15 +893,15 @@ class DummySupervisorRPCNamespace:
     def stopAllProcesses(self):
         from supervisor import xmlrpc
         return [
-            {'name':'foo','group':'foo',
+            {'name': 'foo', 'group': 'foo',
              'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo2', 'group':'foo2',
-             'status':xmlrpc.Faults.SUCCESS,'description': 'OK'},
-            {'name':'failed', 'group':'failed_group',
-             'status':xmlrpc.Faults.BAD_NAME,
-             'description':'FAILED'}
-            ]
+            {'name': 'foo2', 'group': 'foo2',
+             'status': xmlrpc.Faults.SUCCESS, 'description': 'OK'},
+            {'name': 'failed', 'group': 'failed_group',
+             'status': xmlrpc.Faults.BAD_NAME,
+             'description': 'FAILED'}
+        ]
 
     def restart(self):
         if self._restartable:
@@ -936,19 +958,19 @@ class DummySupervisorRPCNamespace:
     def clearAllProcessLogs(self):
         from supervisor import xmlrpc
         return [
-            {'name':'foo',
-             'group':'foo',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo',
+             'group': 'foo',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo2',
-             'group':'foo2',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo2',
+             'group': 'foo2',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'failed',
-             'group':'failed_group',
-             'status':xmlrpc.Faults.FAILED,
-             'description':'FAILED'}
-            ]
+            {'name': 'failed',
+             'group': 'failed_group',
+             'status': xmlrpc.Faults.FAILED,
+             'description': 'FAILED'}
+        ]
 
     def raiseError(self):
         raise ValueError('error')
@@ -969,15 +991,15 @@ class DummySupervisorRPCNamespace:
         if name == 'BAD_NAME':
             raise Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME')
         return [
-            {'name':'foo_00',
-             'group':'foo',
+            {'name': 'foo_00',
+             'group': 'foo',
              'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo_01',
-             'group':'foo',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo_01',
+             'group': 'foo',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            ]
+        ]
 
     def signalProcess(self, name, signal):
         from supervisor import xmlrpc
@@ -997,19 +1019,20 @@ class DummySupervisorRPCNamespace:
     def signalAllProcesses(self, signal):
         from supervisor import xmlrpc
         return [
-            {'name':'foo',
-             'group':'foo',
+            {'name': 'foo',
+             'group': 'foo',
              'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'foo2',
-             'group':'foo2',
-             'status':xmlrpc.Faults.SUCCESS,
+            {'name': 'foo2',
+             'group': 'foo2',
+             'status': xmlrpc.Faults.SUCCESS,
              'description': 'OK'},
-            {'name':'failed',
-             'group':'failed_group',
-             'status':xmlrpc.Faults.BAD_NAME,
-             'description':'FAILED'}
-            ]
+            {'name': 'failed',
+             'group': 'failed_group',
+             'status': xmlrpc.Faults.BAD_NAME,
+             'description': 'FAILED'}
+        ]
+
 
 class DummyPGroupConfig:
     def __init__(self, options, name='whatever', priority=999, pconfigs=None):
@@ -1033,10 +1056,12 @@ class DummyPGroupConfig:
         return '<%s instance at %s named %s>' % (self.__class__, id(self),
                                                  self.name)
 
+
 class DummyFCGIGroupConfig(DummyPGroupConfig):
     def __init__(self, options, name='whatever', priority=999, pconfigs=None, socket_config=DummySocketConfig(1)):
         DummyPGroupConfig.__init__(self, options, name, priority, pconfigs)
         self.socket_config = socket_config
+
 
 @total_ordering
 class DummyProcessGroup(object):
@@ -1044,7 +1069,7 @@ class DummyProcessGroup(object):
         self.config = config
         self.transitioned = False
         self.all_stopped = False
-        self.dispatchers = {}
+        self.dispatchers = {}  # pipe_fd -> dispacher_callback
         self.unstopped_processes = []
         self.before_remove_called = False
 
@@ -1072,11 +1097,13 @@ class DummyProcessGroup(object):
     def reopenlogs(self):
         self.logs_reopened = True
 
+
 class DummyFCGIProcessGroup(DummyProcessGroup):
 
     def __init__(self, config):
         DummyProcessGroup.__init__(self, config)
         self.socket_manager = DummySocketManager(config.socket_config)
+
 
 class PopulatedDummySupervisor(DummySupervisor):
     def __init__(self, options, group_name, *pconfigs):
@@ -1101,6 +1128,7 @@ class PopulatedDummySupervisor(DummySupervisor):
     def reap(self):
         self.reaped = True
 
+
 class DummyDispatcher:
     write_event_handled = False
     read_event_handled = False
@@ -1110,6 +1138,7 @@ class DummyDispatcher:
     closed = False
     flush_error = None
     flushed = False
+
     def __init__(self, readable=False, writable=False, error=False):
         self._readable = readable
         self._writable = writable
@@ -1119,31 +1148,41 @@ class DummyDispatcher:
             # only readable dispatchers should have these methods
             def reopenlogs():
                 self.logs_reopened = True
+
             self.reopenlogs = reopenlogs
+
             def removelogs():
                 self.logs_removed = True
+
             self.removelogs = removelogs
 
     def readable(self):
         return self._readable
+
     def writable(self):
         return self._writable
+
     def handle_write_event(self):
         if self._error:
             raise self._error
         self.write_event_handled = True
+
     def handle_read_event(self):
         if self._error:
             raise self._error
         self.read_event_handled = True
+
     def handle_error(self):
         self.error_handled = True
+
     def close(self):
         self.closed = True
+
     def flush(self):
         if self.flush_error:
             raise OSError(self.flush_error)
         self.flushed = True
+
 
 class DummyStream:
     def __init__(self, error=None, fileno=20):
@@ -1152,26 +1191,33 @@ class DummyStream:
         self.flushed = False
         self.written = b''
         self._fileno = fileno
+
     def close(self):
         if self.error:
             raise self.error
         self.closed = True
+
     def flush(self):
         if self.error:
             raise self.error
         self.flushed = True
+
     def write(self, msg):
         if self.error:
             error = self.error
             self.error = None
             raise error
         self.written += as_bytes(msg)
+
     def seek(self, num, whence=0):
         pass
+
     def tell(self):
         return len(self.written)
+
     def fileno(self):
         return self._fileno
+
 
 class DummyEvent:
     def __init__(self, serial='abc'):
@@ -1180,6 +1226,7 @@ class DummyEvent:
 
     def payload(self):
         return 'dummy event'
+
 
 class DummyPoller:
     def __init__(self, options):
@@ -1198,15 +1245,19 @@ class DummyPoller:
     def close(self):
         self.closed = True
 
+
 def dummy_handler(event, result):
     pass
+
 
 def rejecting_handler(event, result):
     from supervisor.dispatchers import RejectEvent
     raise RejectEvent(result)
 
+
 def exception_handler(event, result):
     raise ValueError(result)
+
 
 def lstrip(s):
     strings = [x.strip() for x in s.split('\n')]

@@ -219,7 +219,7 @@ class Subprocess(object):
             return
 
         try:
-            # 生成管道，生成与主进程通信的管道
+            # dispatchers  => dispatchers[pipe_fd] = callback
             self.dispatchers, self.pipes = self.config.make_dispatchers(self)
         except (OSError, IOError) as why:
             code = why.args[0]
@@ -253,11 +253,9 @@ class Subprocess(object):
             options.close_child_pipes(self.pipes)
             return
 
-        if pid != 0:
-            # fork 父进程操作
+        if pid != 0:  # fork 父进程操作
             return self._spawn_as_parent(pid)
-        else:
-            # fork 子进程操作
+        else:  # fork 子进程操作
             return self._spawn_as_child(filename, argv)
 
     def _spawn_as_parent(self, pid):
@@ -335,7 +333,7 @@ class Subprocess(object):
             try:
                 if self.config.umask is not None:
                     options.setumask(self.config.umask)
-                options.execve(filename, argv, env)  # 子进程开始执行
+                options.execve(filename, argv, env)  # 子进程执行命令
             except OSError as why:
                 code = errno.errorcode.get(why.args[0], why.args[0])
                 msg = "couldn't exec %s: %s\n" % (argv[0], code)
@@ -626,10 +624,9 @@ class Subprocess(object):
     def get_state(self):
         return self.state
 
-    def transition(self):
-        # 进程状态转移
+    def transition(self):  # @important => 子进程的状态转换
         now = time.time()
-        state = self.state
+        state = self.state  # 子进程当前状态，self.config.options.mood 目标状态
 
         self._check_and_adjust_for_system_clock_rollback(now)
 
