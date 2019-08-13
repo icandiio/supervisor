@@ -493,7 +493,7 @@ class StatusView(MeldView):
                     server_url = form['SERVER_URL']
                     location = server_url + "/" + '?message=%s' % urllib.quote(
                         message)
-                    response['headers']['Location'] = location
+                    response['headers']['Location'] = location  # 重定向
 
         supervisord = self.context.supervisord
         rpcinterface = RootRPCInterface(
@@ -589,7 +589,7 @@ class OKView:
 VIEWS = {
     'index.html': {
         'template': 'ui/status.html',
-        'view': StatusView
+        'view': StatusView  # @important 页面start,stop等操作处理 => 内部通过rpc实现
     },
     'tail.html': {
         'template': 'ui/tail.html',
@@ -618,7 +618,7 @@ class supervisor_ui_handler:
             path = path[1:]
 
         if not path:
-            path = 'index.html'
+            path = 'index.html'  # 没有 uri 的适配处理
 
         for viewname in VIEWS.keys():
             if viewname == path:

@@ -78,7 +78,6 @@ class default_handler:
     # handle a file request, with caching.
 
     def handle_request(self, request):
-
         if request.command not in self.valid_commands:
             request.error(400)  # bad request
             return
