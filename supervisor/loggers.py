@@ -17,14 +17,16 @@ from supervisor.compat import syslog
 from supervisor.compat import long
 from supervisor.compat import is_text_stream
 
+
 class LevelsByName:
-    CRIT = 50   # messages that probably require immediate user attention
-    ERRO = 40   # messages that indicate a potentially ignorable error condition
-    WARN = 30   # messages that indicate issues which aren't errors
-    INFO = 20   # normal informational output
-    DEBG = 10   # messages useful for users trying to debug configurations
-    TRAC = 5    # messages useful to developers trying to debug plugins
-    BLAT = 3    # messages useful for developers trying to debug supervisor
+    CRIT = 50  # messages that probably require immediate user attention
+    ERRO = 40  # messages that indicate a potentially ignorable error condition
+    WARN = 30  # messages that indicate issues which aren't errors
+    INFO = 20  # normal informational output
+    DEBG = 10  # messages useful for users trying to debug configurations
+    TRAC = 5  # messages useful to developers trying to debug plugins
+    BLAT = 3  # messages useful for developers trying to debug supervisor
+
 
 class LevelsByDescription:
     critical = LevelsByName.CRIT
@@ -35,6 +37,7 @@ class LevelsByDescription:
     trace = LevelsByName.TRAC
     blather = LevelsByName.BLAT
 
+
 def _levelNumbers():
     bynumber = {}
     for name, number in LevelsByName.__dict__.items():
@@ -42,11 +45,14 @@ def _levelNumbers():
             bynumber[number] = name
     return bynumber
 
+
 LOG_LEVELS_BY_NUM = _levelNumbers()
+
 
 def getLevelNumByDescription(description):
     num = getattr(LevelsByDescription, description, None)
     return num
+
 
 class Handler:
     fmt = '%(message)s'
@@ -80,7 +86,7 @@ class Handler:
                     # but calling it may raise io.UnsupportedOperation
                     pass
                 else:
-                    if fd < 3: # don't ever close stdout or stderr
+                    if fd < 3:  # don't ever close stdout or stderr
                         return
             self.stream.close()
             self.closed = True
@@ -114,6 +120,7 @@ class Handler:
         traceback.print_exception(ei[0], ei[1], ei[2], None, sys.stderr)
         del ei
 
+
 class StreamHandler(Handler):
     def __init__(self, strm=None):
         Handler.__init__(self, strm)
@@ -124,6 +131,7 @@ class StreamHandler(Handler):
 
     def reopen(self):
         pass
+
 
 class BoundIO:
     def __init__(self, maxbytes, buf=b''):
@@ -147,6 +155,7 @@ class BoundIO:
 
     def clear(self):
         self.buf = b''
+
 
 class FileHandler(Handler):
     """File handler which supports reopening of logs.
@@ -184,8 +193,9 @@ class FileHandler(Handler):
             if why.args[0] != errno.ENOENT:
                 raise
 
+
 class RotatingFileHandler(FileHandler):
-    def __init__(self, filename, mode='ab', maxBytes=512*1024*1024,
+    def __init__(self, filename, mode='ab', maxBytes=512 * 1024 * 1024,
                  backupCount=10):
         """
         Open the specified file and use it as the stream for logging.
@@ -208,7 +218,7 @@ class RotatingFileHandler(FileHandler):
         If maxBytes is zero, rollover never occurs.
         """
         if maxBytes > 0:
-            mode = 'ab' # doesn't make sense otherwise!
+            mode = 'ab'  # doesn't make sense otherwise!
         FileHandler.__init__(self, filename, mode)
         self.maxBytes = maxBytes
         self.backupCount = backupCount
@@ -225,15 +235,15 @@ class RotatingFileHandler(FileHandler):
         FileHandler.emit(self, record)
         self.doRollover()
 
-    def _remove(self, fn): # pragma: no cover
+    def _remove(self, fn):  # pragma: no cover
         # this is here to service stubbing in unit tests
         return os.remove(fn)
 
-    def _rename(self, src, tgt): # pragma: no cover
+    def _rename(self, src, tgt):  # pragma: no cover
         # this is here to service stubbing in unit tests
         return os.rename(src, tgt)
 
-    def _exists(self, fn): # pragma: no cover
+    def _exists(self, fn):  # pragma: no cover
         # this is here to service stubbing in unit tests
         return os.path.exists(fn)
 
@@ -274,6 +284,7 @@ class RotatingFileHandler(FileHandler):
             self.removeAndRename(self.baseFilename, dfn)
         self.stream = open(self.baseFilename, 'wb')
 
+
 class LogRecord:
     def __init__(self, level, msg, **kw):
         self.level = level
@@ -292,9 +303,10 @@ class LogRecord:
                 msg = self.msg % self.kw
             else:
                 msg = self.msg
-            self.dictrepr = {'message':msg, 'levelname':levelname,
-                             'asctime':asctime}
+            self.dictrepr = {'message': msg, 'levelname': levelname,
+                             'asctime': asctime}
         return self.dictrepr
+
 
 class Logger:
     def __init__(self, level=None, handlers=None):
@@ -350,6 +362,7 @@ class Logger:
     def getvalue(self):
         raise NotImplementedError
 
+
 class SyslogHandler(Handler):
     def __init__(self):
         Handler.__init__(self)
@@ -361,7 +374,7 @@ class SyslogHandler(Handler):
     def reopen(self):
         pass
 
-    def _syslog(self, msg): # pragma: no cover
+    def _syslog(self, msg):  # pragma: no cover
         # this exists only for unit test stubbing
         syslog.syslog(msg)
 
@@ -379,10 +392,13 @@ class SyslogHandler(Handler):
         except:
             self.handleError()
 
+
 def getLogger(level=None):
     return Logger(level)
 
-_2MB = 1<<21
+
+_2MB = 1 << 21
+
 
 def handle_boundIO(logger, fmt, maxbytes=_2MB):
     io = BoundIO(maxbytes)
@@ -394,17 +410,20 @@ def handle_boundIO(logger, fmt, maxbytes=_2MB):
 
     return logger
 
+
 def handle_stdout(logger, fmt):
     handler = StreamHandler(sys.stdout)
     handler.setFormat(fmt)
     handler.setLevel(logger.level)
     logger.addHandler(handler)
 
+
 def handle_syslog(logger, fmt):
     handler = SyslogHandler()
     handler.setFormat(fmt)
     handler.setLevel(logger.level)
     logger.addHandler(handler)
+
 
 def handle_file(logger, filename, fmt, rotating=False, maxbytes=0, backups=0):
     if filename == 'syslog':

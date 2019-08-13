@@ -818,7 +818,12 @@ def make_http_servers(options, supervisord):
         else:
             raise ValueError('Cannot determine socket type %r' % family)
 
-        # handler
+        """
+        handler的适配流程：
+        1.基于http协议包切出uri关键字,封装成request对象
+        2.handler.match(request)确认是否匹配
+        3.如果匹配，handler.handle_request(request)处理请求
+        """
         from supervisor.xmlrpc import supervisor_xmlrpc_handler
         from supervisor.xmlrpc import SystemNamespaceRPCInterface
         from supervisor.web import supervisor_ui_handler
@@ -826,7 +831,7 @@ def make_http_servers(options, supervisord):
         subinterfaces = []
         for name, factory, d in options.rpcinterface_factories:
             try:
-                inst = factory(supervisord, **d)
+                inst = factory(supervisord, **d)  # rpc 接口实例化
             except:
                 tb = traceback.format_exc()
                 options.logger.warn(tb)
@@ -834,12 +839,13 @@ def make_http_servers(options, supervisord):
             subinterfaces.append((name, inst))
             options.logger.info('RPC interface %r initialized' % name)
 
-        subinterfaces.append(('system',
-                              SystemNamespaceRPCInterface(subinterfaces)))
+        subinterfaces.append(('system', SystemNamespaceRPCInterface(subinterfaces)))
+
         xmlrpchandler = supervisor_xmlrpc_handler(supervisord, subinterfaces)
         tailhandler = logtail_handler(supervisord)
         maintailhandler = mainlogtail_handler(supervisord)
         uihandler = supervisor_ui_handler(supervisord)
+
         here = os.path.abspath(os.path.dirname(__file__))
         templatedir = os.path.join(here, 'ui')
         filesystem = filesys.os_filesystem(templatedir)

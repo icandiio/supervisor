@@ -247,6 +247,8 @@ class Controller(cmd.Cmd):
         self.stdout.write(message + '\n')
 
     def get_supervisor(self):
+        # @important 生成supervisor的rpc 调用代理
+        # 调用远端代码通过rpc代理就像在本地执行 => rpc协议自己会封装网络请求完成调用
         return self.get_server_proxy('supervisor')
 
     def get_server_proxy(self, namespace=None):

@@ -7,8 +7,10 @@
 
 RCS_ID = '$Id: default_handler.py,v 1.8 2002/08/01 18:15:45 akuchling Exp $'
 
+import logging
 # standard python modules
 import mimetypes
+
 import re
 import stat
 
@@ -16,7 +18,6 @@ import stat
 import supervisor.medusa.http_date as http_date
 import supervisor.medusa.http_server as http_server
 import supervisor.medusa.producers as producers
-
 from supervisor.medusa.util import html_repr
 
 unquote = http_server.unquote
@@ -35,6 +36,8 @@ unquote = http_server.unquote
 #
 
 from supervisor.medusa.counter import counter
+
+logger = logging.getLogger(__name__)
 
 
 class default_handler:

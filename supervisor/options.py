@@ -388,7 +388,7 @@ class Options:
             for k in parser.options(section):
                 if k != factory_key:
                     extras[k] = parser.saneget(section, k)
-            factories.append((name, factory, extras))
+            factories.append((name, factory, extras))  # name,func,func_kwargs
 
         return factories
 
@@ -672,7 +672,7 @@ class ServerOptions(Options):
         section.environment = dict_of_key_value_pairs(environ_str)
         # Process rpcinterface plugins before groups to allow custom events to
         # be registered.
-        # RPC相关配置
+        # RPC相关配置 =>
         section.rpcinterface_factories = self.get_plugins(
             parser,
             'supervisor.rpcinterface_factory',
@@ -1489,7 +1489,7 @@ class ServerOptions(Options):
 
     def make_logger(self):
         # must be called after realize() and after supervisor does setuid()
-        format = '%(asctime)s %(levelname)s %(message)s\n'
+        format = '%(asctime)s %(levelname)s %(message)s\n'  # record.asdict() 只有相应的3个字段，不能换format格式
         self.logger = loggers.getLogger(self.loglevel)
         if self.nodaemon:
             loggers.handle_stdout(self.logger, format)

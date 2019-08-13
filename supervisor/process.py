@@ -271,6 +271,12 @@ class Subprocess(object):
 
     def _prepare_child_fds(self):
         options = self.config.options
+        """
+        标准输入 STDIN , 在 /dev/stdin , 一般指键盘输入, shell里代号是 0
+        标准输出 STDOUT, 在 /dev/stdout, 一般指终端(terminal), 就是显示器, shell里代号是 1
+        标准错误 STDERR, 在 /dev/stderr, 也是指终端(terminal), 不同的是, 错误信息送到这里 shell里代号是 2
+        """
+        # 重定向
         options.dup2(self.pipes['child_stdin'], 0)
         options.dup2(self.pipes['child_stdout'], 1)
         if self.config.redirect_stderr:
@@ -333,7 +339,7 @@ class Subprocess(object):
             try:
                 if self.config.umask is not None:
                     options.setumask(self.config.umask)
-                options.execve(filename, argv, env)  # 子进程执行命令
+                options.execve(filename, argv, env)  # 子进程开始执行相关命令
             except OSError as why:
                 code = errno.errorcode.get(why.args[0], why.args[0])
                 msg = "couldn't exec %s: %s\n" % (argv[0], code)
